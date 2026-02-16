@@ -1,10 +1,9 @@
-# Block-Crosh
 <!DOCTYPE html>
 <html lang="uz">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Block Crush - Preview bilan</title>
+    <title>Block Crush</title>
     <style>
         * {
             margin: 0;
@@ -32,105 +31,102 @@
             font-family: 'Segoe UI', Arial, sans-serif;
             display: flex;
             justify-content: center;
-            align-items: center;
-            padding: 10px;
+            align-items: flex-start;
+            padding: 20px 10px 10px 10px;
+            min-height: 100vh;
         }
 
         /* Bosh menyu */
         .menu {
             background: #8b5a2b;
-            padding: min(40px, 8vw);
-            border-radius: 40px;
+            padding: min(50px, 10vw);
+            border-radius: 50px;
             box-shadow: 0 20px 40px rgba(0,0,0,0.5);
-            width: min(450px, 95%);
+            width: min(500px, 98%);
             text-align: center;
-            border: 4px solid gold;
+            border: 5px solid gold;
+            margin-top: 20px;
         }
 
         .menu h1 {
             color: gold;
-            font-size: clamp(36px, 12vw, 52px);
-            margin-bottom: 30px;
-            text-shadow: 4px 4px 0 #4b2e16;
+            font-size: clamp(42px, 14vw, 58px);
+            margin-bottom: 40px;
+            text-shadow: 5px 5px 0 #4b2e16;
         }
 
         .menu button {
             background: gold;
             color: #4b2e16;
             border: none;
-            padding: 18px 35px;
-            margin: 12px;
-            font-size: clamp(20px, 6vw, 26px);
+            padding: 22px 45px;
+            margin: 15px;
+            font-size: clamp(24px, 7vw, 30px);
             font-weight: bold;
-            border-radius: 60px;
+            border-radius: 70px;
             cursor: pointer;
-            border: 4px solid #4b2e16;
+            border: 5px solid #4b2e16;
             transition: all 0.2s;
-            width: min(220px, 85%);
-            box-shadow: 0 5px 0 #4b2e16;
+            width: min(260px, 90%);
+            box-shadow: 0 7px 0 #4b2e16;
         }
 
         .menu button:active {
-            transform: translateY(4px);
-            box-shadow: 0 1px 0 #4b2e16;
+            transform: translateY(5px);
+            box-shadow: 0 2px 0 #4b2e16;
         }
 
         /* O'yin qutisi */
         .game-container {
             background: #8b5a2b;
-            padding: min(15px, 3vw);
-            border-radius: 40px;
+            padding: min(20px, 4vw);
+            border-radius: 50px;
             box-shadow: 0 20px 40px rgba(0,0,0,0.5);
-            width: min(550px, 98%);
+            width: min(600px, 100%);
             max-height: 98vh;
             display: none;
-            border: 4px solid gold;
+            border: 5px solid gold;
             position: relative;
             touch-action: none;
-        }
-
-        h1 {
-            margin: 5px 0;
-            color: gold;
-            font-size: clamp(28px, 8vw, 36px);
-            text-shadow: 2px 2px 0 #4b2e16;
+            margin-top: 20px;
+            overflow-y: visible; /* Pastdagi kubiklar ko'rinishi uchun */
         }
 
         .score-panel {
             background: #4b2e16;
             color: gold;
-            font-size: clamp(22px, 6vw, 26px);
-            padding: 10px 25px;
-            border-radius: 50px;
-            margin: 10px auto;
+            font-size: clamp(26px, 7vw, 32px);
+            padding: 15px 30px;
+            border-radius: 60px;
+            margin: 15px auto;
             display: inline-block;
             font-weight: bold;
-            border: 3px solid gold;
-            box-shadow: inset 0 -3px 0 #2b1a0e;
+            border: 4px solid gold;
+            box-shadow: inset 0 -4px 0 #2b1a0e;
         }
 
         .board {
-            width: min(340px, 75vw);
-            height: min(340px, 75vw);
-            margin: 10px auto;
+            width: min(400px, 85vw);
+            height: min(400px, 85vw);
+            margin: 15px auto;
             display: grid;
             grid-template-columns: repeat(10, 1fr);
             grid-template-rows: repeat(10, 1fr);
-            gap: 3px;
+            gap: 4px;
             background: #4b2e16;
-            padding: 8px;
-            border-radius: 20px;
-            border: 4px solid gold;
+            padding: 10px;
+            border-radius: 25px;
+            border: 5px solid gold;
             touch-action: none;
-            box-shadow: inset 0 -5px 0 #2b1a0e;
+            box-shadow: inset 0 -6px 0 #2b1a0e;
             position: relative;
         }
 
         .cell {
             background: #6b3f1f;
-            border-radius: 6px;
+            border-radius: 8px;
             transition: all 0.15s;
-            box-shadow: inset 0 -3px 0 #3a2a1a;
+            box-shadow: inset 0 -4px 0 #3a2a1a;
             aspect-ratio: 1;
             border: 1px solid #8b5a2b;
             position: relative;
@@ -140,22 +136,23 @@
         .cell.filled {
             background: gold;
             animation: pop 0.2s ease;
-            box-shadow: inset 0 -3px 0 #b8860b;
+            box-shadow: inset 0 -4px 0 #b8860b;
         }
 
         .cell.filled.red { background: #ff4444; }
         .cell.filled.blue { background: #4444ff; }
-        .cell.filled.green { background: #44ff44; }
-        .cell.filled.purple { background: #aa44ff; }
-        .cell.filled.orange { background: #ff8844; }
+        .cell.filled.green { background: #2ecc71; }
+        .cell.filled.purple { background: #9b59b6; }
+        .cell.filled.orange { background: #e67e22; }
 
-        /* PREVIEW SOYA - MUHIM QISM */
+        /* PREVIEW SOYA */
         .cell.preview {
             background: rgba(255, 215, 0, 0.3);
-            border: 2px dashed gold;
-            box-shadow: 0 0 15px gold;
-            animation: pulse 1s infinite;
+            border: 3px dashed gold;
+            box-shadow: 0 0 20px gold;
+            animation: pulse 0.8s infinite;
             z-index: 10;
+            pointer-events: none;
         }
 
         .cell.preview.red { background: rgba(255, 68, 68, 0.3); border-color: #ff4444; }
@@ -165,48 +162,52 @@
         .cell.preview.orange { background: rgba(230, 126, 34, 0.3); border-color: #e67e22; }
 
         @keyframes pulse {
-            0% { opacity: 0.5; transform: scale(1); }
-            50% { opacity: 1; transform: scale(1.05); }
-            100% { opacity: 0.5; transform: scale(1); }
+            0% { opacity: 0.6; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.02); }
+            100% { opacity: 0.6; transform: scale(1); }
         }
 
         @keyframes pop {
             0% { transform: scale(1); }
-            50% { transform: scale(1.15); }
+            50% { transform: scale(1.2); }
             100% { transform: scale(1); }
         }
 
         .pieces {
             display: flex;
             justify-content: center;
-            gap: min(12px, 2.5vw);
-            margin: 15px 0 5px 0;
-            padding: min(15px, 3vw);
+            gap: min(15px, 3vw);
+            margin: 20px 0 20px 0; /* Pastki margin kattaroq */
+            padding: min(20px, 4vw);
             background: #4b2e16;
-            border-radius: 30px;
-            border: 4px solid gold;
+            border-radius: 40px;
+            border: 5px solid gold;
             flex-wrap: wrap;
             touch-action: none;
-            min-height: 120px;
-            box-shadow: inset 0 -5px 0 #2b1a0e;
+            min-height: 150px;
+            box-shadow: inset 0 -6px 0 #2b1a0e;
+            /* Pastdagi kubiklar to'liq ko'rinishi uchun */
+            overflow: visible;
         }
 
         .piece {
             display: grid;
-            gap: 2px;
+            gap: 3px;
             background: #6b3f1f;
-            padding: min(8px, 2vw);
-            border-radius: 15px;
-            border: 3px solid gold;
+            padding: min(10px, 2.5vw);
+            border-radius: 20px;
+            border: 4px solid gold;
             touch-action: none;
             cursor: grab;
             -webkit-user-drag: element;
-            box-shadow: 0 5px 0 #3a2a1a;
+            box-shadow: 0 6px 0 #3a2a1a;
             transition: all 0.1s;
+            /* Kubiklar to'liq ko'rinishi */
+            margin-bottom: 5px;
         }
 
         .piece:active {
-            transform: translateY(3px) scale(0.98);
+            transform: translateY(4px) scale(0.98);
             box-shadow: 0 2px 0 #3a2a1a;
             cursor: grabbing;
         }
@@ -216,10 +217,10 @@
         }
 
         .block {
-            width: min(24px, 5.5vw);
-            height: min(24px, 5.5vw);
-            border-radius: 5px;
-            box-shadow: 0 3px 0 #3a2a1a;
+            width: min(30px, 7vw);
+            height: min(30px, 7vw);
+            border-radius: 6px;
+            box-shadow: 0 4px 0 #3a2a1a;
         }
 
         .block.green { background: #2ecc71; }
@@ -239,63 +240,63 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0,0,0,0.85);
+            background: rgba(0,0,0,0.9);
             display: none;
             justify-content: center;
             align-items: center;
             z-index: 2000;
-            backdrop-filter: blur(5px);
+            backdrop-filter: blur(8px);
         }
 
         .modal-content {
             background: #8b5a2b;
-            padding: min(40px, 8vw);
-            border-radius: 40px;
+            padding: min(50px, 10vw);
+            border-radius: 50px;
             text-align: center;
-            border: 5px solid gold;
-            width: min(400px, 90%);
-            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+            border: 6px solid gold;
+            width: min(450px, 95%);
+            box-shadow: 0 30px 50px rgba(0,0,0,0.6);
         }
 
         .modal-content h2 {
             color: gold;
-            font-size: clamp(36px, 10vw, 48px);
-            margin-bottom: 20px;
-            text-shadow: 3px 3px 0 #4b2e16;
+            font-size: clamp(42px, 12vw, 54px);
+            margin-bottom: 30px;
+            text-shadow: 4px 4px 0 #4b2e16;
         }
 
         .modal-content p {
             color: white;
-            font-size: clamp(20px, 6vw, 26px);
-            margin: 20px 0;
+            font-size: clamp(24px, 7vw, 30px);
+            margin: 25px 0;
         }
 
         #finalScore {
             color: gold;
-            font-size: clamp(48px, 12vw, 60px);
+            font-size: clamp(54px, 14vw, 70px);
             font-weight: bold;
-            text-shadow: 3px 3px 0 #4b2e16;
+            text-shadow: 4px 4px 0 #4b2e16;
         }
 
         .modal-content button {
             background: gold;
             color: #4b2e16;
             border: none;
-            padding: 18px 35px;
-            margin: 12px;
-            font-size: clamp(18px, 5vw, 22px);
+            padding: 22px 45px;
+            margin: 15px;
+            font-size: clamp(20px, 6vw, 26px);
             font-weight: bold;
-            border-radius: 60px;
+            border-radius: 70px;
             cursor: pointer;
-            border: 4px solid #4b2e16;
+            border: 5px solid #4b2e16;
             transition: all 0.2s;
-            width: min(220px, 85%);
-            box-shadow: 0 5px 0 #4b2e16;
+            width: min(260px, 90%);
+            box-shadow: 0 7px 0 #4b2e16;
         }
 
         .modal-content button:active {
-            transform: translateY(4px);
-            box-shadow: 0 1px 0 #4b2e16;
+            transform: translateY(5px);
+            box-shadow: 0 2px 0 #4b2e16;
         }
 
         .modal-content .menu-btn {
@@ -305,14 +306,14 @@
 
         .rules-text {
             color: white;
-            font-size: clamp(16px, 4.5vw, 20px);
+            font-size: clamp(18px, 5vw, 22px);
             text-align: left;
-            margin: 20px 0;
-            line-height: 2;
-            padding: 0 15px;
+            margin: 25px 0;
+            line-height: 2.2;
+            padding: 0 20px;
             background: #6b3f1f;
-            border-radius: 20px;
-            border: 2px solid gold;
+            border-radius: 25px;
+            border: 3px solid gold;
         }
 
         .rules-text p {
@@ -320,7 +321,7 @@
             color: white;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
         }
     </style>
 </head>
@@ -334,7 +335,7 @@
 
     <!-- O'yin qutisi -->
     <div class="game-container" id="gameContainer">
-        <h1>🧩 BLOCK CRUSH</h1>
+        <!-- "Block Crush" yozuvi olib tashlandi -->
         
         <div class="score-panel" id="score">
             Ball: 0
@@ -361,7 +362,7 @@
         <div class="modal-content">
             <h2>QOIDALAR</h2>
             <div class="rules-text">
-                <p>👉 Kubiklarni barmoq bilan surib maydonga tashlang</p>
+                <p>👉 Kubiklarni surib maydonga tashlang</p>
                 <p>⬜ To'liq qator yoki ustun hosil qiling</p>
                 <p>💰 Har bir kubik uchun +10 ball</p>
                 <p>🎯 To'liq qator/ustun uchun +100 ball</p>
@@ -445,7 +446,7 @@
             
             if (!piece) return;
             
-            // Tekshirish
+            // Avval to'ldirilgan joylarni tekshirish
             for (let r = 0; r < piece.pattern.length; r++) {
                 for (let c = 0; c < piece.pattern[0].length; c++) {
                     if (piece.pattern[r][c] === 1) {
@@ -453,9 +454,27 @@
                         const newCol = col + c;
                         
                         if (newRow >= 0 && newRow < 10 && newCol >= 0 && newCol < 10) {
-                            if (!grid[newRow * 10 + newCol].classList.contains('filled')) {
-                                grid[newRow * 10 + newCol].classList.add('preview', piece.color);
+                            if (grid[newRow * 10 + newCol].classList.contains('filled')) {
+                                clearPreview();
+                                return;
                             }
+                        } else {
+                            clearPreview();
+                            return;
+                        }
+                    }
+                }
+            }
+            
+            // To'ldirilgan joy yo'q - preview ko'rsat
+            for (let r = 0; r < piece.pattern.length; r++) {
+                for (let c = 0; c < piece.pattern[0].length; c++) {
+                    if (piece.pattern[r][c] === 1) {
+                        const newRow = row + r;
+                        const newCol = col + c;
+                        
+                        if (newRow >= 0 && newRow < 10 && newCol >= 0 && newCol < 10) {
+                            grid[newRow * 10 + newCol].classList.add('preview', piece.color);
                         }
                     }
                 }
@@ -475,8 +494,8 @@
             const rows = piece.pattern.length;
             const cols = piece.pattern[0].length;
             
-            pieceDiv.style.gridTemplateColumns = `repeat(${cols}, min(28px, 6vw))`;
-            pieceDiv.style.gridTemplateRows = `repeat(${rows}, min(28px, 6vw))`;
+            pieceDiv.style.gridTemplateColumns = `repeat(${cols}, min(30px, 7vw))`;
+            pieceDiv.style.gridTemplateRows = `repeat(${rows}, min(30px, 7vw))`;
 
             for (let r = 0; r < rows; r++) {
                 for (let c = 0; c < cols; c++) {
@@ -493,13 +512,11 @@
                 }
             }
 
-            // TOUCH EVENTLARI - PREVIEW BILAN
+            // TOUCH EVENTLARI
             pieceDiv.addEventListener('touchstart', (e) => {
                 e.preventDefault();
-                const touch = e.touches[0];
                 draggedPiece = piece;
                 draggedElement = pieceDiv;
-                
                 pieceDiv.classList.add('dragging');
                 previewRow = -1;
                 previewCol = -1;
@@ -510,8 +527,6 @@
                 
                 if (draggedPiece) {
                     const touch = e.touches[0];
-                    
-                    // Maydon ustidami?
                     const rect = board.getBoundingClientRect();
                     
                     if (touch.clientX >= rect.left && touch.clientX <= rect.right && 
@@ -522,7 +537,6 @@
                         const row = Math.floor((touch.clientY - rect.top) / cellSize);
                         
                         if (row >= 0 && row < 10 && col >= 0 && col < 10) {
-                            // Preview ko'rsatish
                             if (previewRow !== row || previewCol !== col) {
                                 previewRow = row;
                                 previewCol = col;
@@ -546,8 +560,6 @@
                 
                 if (draggedPiece && draggedElement) {
                     const touch = e.changedTouches[0];
-                    
-                    // Maydonga tushirish
                     const rect = board.getBoundingClientRect();
                     
                     if (touch.clientX >= rect.left && touch.clientX <= rect.right && 
@@ -582,7 +594,6 @@
                         }
                     }
                     
-                    // Tozalash
                     draggedElement.classList.remove('dragging');
                     draggedPiece = null;
                     draggedElement = null;
