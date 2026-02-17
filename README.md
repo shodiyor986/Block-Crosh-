@@ -15,6 +15,7 @@
   --cell-empty:rgba(255,255,255,0.04);--cell-border:rgba(255,255,255,0.07);
   --text:#e8e8ff;--text2:rgba(232,232,255,0.45);
 }
+html{margin-top:-30px;overflow-x:hidden;}
 html,body{
   width:100%;min-height:100vh;
   background:var(--bg1);
@@ -675,7 +676,8 @@ function restartGame(){
   gameOverModal.style.display='none';
 }
 
-// BUTTON EVENTS
+// INIT
+createBoard();generatePieces();
 document.getElementById('startBtn').addEventListener('click',()=>{
   playSound('menu');
   menuScreen.style.display='none';
@@ -693,8 +695,34 @@ document.getElementById('menuBtn').addEventListener('click',()=>{
   playSound('menu');gameContainer.style.display='none';menuScreen.style.display='flex';
 });
 
-// INIT
-createBoard();generatePieces();
+// GitHub Pages / Telegram WebApp yuqorisidagi keraksiz elementlarni yashirish
+(function(){
+  // html ga negative margin
+  document.documentElement.style.marginTop = '-30px';
+  document.documentElement.style.overflow = 'hidden auto';
+
+  // body ning birinchi child elementlari ichida text node yoki noma'lum element bo'lsa o'chirish
+  function cleanBody(){
+    Array.from(document.body.childNodes).forEach(node=>{
+      // Bizning elementlarimiz emas — particles, menuScreen, gameContainer, modallar
+      const known=['particles','menuScreen','gameContainer','gameOverModal','howModal'];
+      if(node.nodeType===Node.TEXT_NODE){
+        node.remove();
+      } else if(node.nodeType===Node.ELEMENT_NODE && !known.includes(node.id)){
+        // script va style ni qoldirish
+        if(!['SCRIPT','STYLE','LINK'].includes(node.tagName)){
+          node.style.display='none';
+        }
+      }
+    });
+  }
+  document.addEventListener('DOMContentLoaded', cleanBody);
+  // Telegram WebApp SDK
+  if(window.Telegram && window.Telegram.WebApp){
+    window.Telegram.WebApp.ready();
+    window.Telegram.WebApp.expand();
+  }
+})();
 </script>
 </body>
 </html>
