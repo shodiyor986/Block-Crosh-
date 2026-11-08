@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="uz">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>LUDO WARRIORS 3D</title>
+<style>
+:root{--gold:#f5c76b;--panel:rgba(12,18,28,.88);--line:rgba(255,255,255,.16)}
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#101923;color:#fff;font-family:system-ui,Segoe UI,Arial}
+#game{position:fixed;inset:0}canvas{display:block}
+#hud{position:fixed;inset:0;pointer-events:none;padding:12px;display:flex;flex-direction:column;justify-content:space-between}
+.top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:10px 13px;backdrop-filter:blur(10px);box-shadow:0 8px 24px #0005}
+.brand{font-weight:900;letter-spacing:1.5px;color:var(--gold);font-size:clamp(14px,2.5vw,20px)}
+#turn{font-size:13px;margin-top:4px;color:#d9e4f1}
+#status{font-size:12px;color:#b9c6d5;margin-top:3px}
+.controls{display:flex;gap:8px;pointer-events:auto;align-items:center}
+button{border:0;border-radius:12px;padding:12px 16px;font-weight:800;color:#17202b;background:linear-gradient(135deg,#ffe29a,#d99b35);box-shadow:0 5px 0 #8c5c1c;cursor:pointer}
+button:disabled{opacity:.45;cursor:not-allowed}
+#roll{min-width:112px;font-size:15px}
+#dice{font-size:24px;min-width:52px;text-align:center}
+.bottom{display:flex;justify-content:space-between;align-items:end;gap:10px}
+#help{max-width:390px;font-size:12px;line-height:1.4;color:#d2dce7}
+#score{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.pill{font-size:11px;padding:7px 9px;border-radius:10px;background:#101925dd;border:1px solid var(--line)}
+#toast{position:fixed;left:50%;top:20%;transform:translateX(-50%);background:#111d2bee;border:1px solid #ffffff30;border-radius:14px;padding:12px 18px;font-weight:700;opacity:0;transition:opacity .25s;pointer-events:none;text-align:center;max-width:85vw}
+#legend{display:flex;gap:7px;flex-wrap:wrap;margin-top:6px}
+.dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px}
+@media(max-width:600px){#hud{padding:8px}.panel{padding:8px 10px}.top{align-items:flex-start}.controls{gap:6px}button{padding:11px 12px}#help{max-width:58%;font-size:10px}.bottom{align-items:end}}
+</style>
+</head>
+<body>
+<div id="game"></div>
+<div id="hud">
+ <div class="top">
+  <div class="panel">
+   <div class="brand">⚔ LUDO WARRIORS 3D</div>
+   <div id="turn">Navbat: Qizil</div>
+   <div id="status">Zarni tashlang va jangchini tanlang.</div>
+   <div id="legend">
+    <span><i class="dot" style="background:#e84b4b"></i>Qizil</span>
+    <span><i class="dot" style="background:#36c77a"></i>Yashil</span>
+    <span><i class="dot" style="background:#4a91ff"></i>Ko‘k</span>
+    <span><i class="dot" style="background:#f4c542"></i>Sariq</span>
+   </div>
+  </div>
+  <div class="controls">
+   <div class="panel" id="dice">⚄</div>
+   <button id="roll">ZAR TASHLA</button>
+  </div>
+ </div>
+ <div class="bottom">
+  <div class="panel" id="help">Qoidalar: 6 tushsa jangchi maydonga chiqadi. Jangchini bosib yuring. Raqib katagiga tushsangiz, u sehrli portlash bilan uyiga qaytadi.</div>
+  <div class="panel" id="score">4 jamoa · 4 jangchi</div>
+ </div>
+</div>
+<div id="toast"></div>
+<script type="module">
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+
+const host=document.getElementById('game');
+const scene=new THREE.Scene(); scene.background=new THREE.Color(0x101923); scene.fog=new THREE.Fog(0x101923,22,42);
+const camera=new THREE.PerspectiveCamera(42,innerWidth/innerHeight,.1,100);
+camera.position.set(0,15,18); camera.lookAt(0,0,0);
+const renderer=new THREE.WebGLRenderer({antialias:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio,2)); renderer.setSize(innerWidth,innerHeight);
+renderer.shadowMap.enabled=true; renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+renderer.outputColorSpace=THREE.SRGBColorSpace; renderer.toneMapping=THREE.ACESFilmicToneMapping; renderer.toneMappingExposure=1.15;
+host.appendChild(renderer.domElement);
+scene.add(new THREE.HemisphereLight(0xbdd8ff,0x28301e,2.0));
+const key=new THREE.DirectionalLight(0xffe1b0,3.1); key.position.set(-7,14,8); key.castShadow=true; key.shadow.mapSize.set(2048,2048); scene.add(key);
+const fill=new THREE.PointLight(0x5b8cff,30,30); fill.position.set(8,6,-7); scene.add(fill);
+
+const mat=(c,rough=.65,metal=0)=>new THREE.MeshStandardMaterial({color:c,roughness:rough,metalness:metal});
+const colors=[
+ {name:'Qizil',hex:0xe84b4b,base:0x8d252d,start:0},
+ {name:'Yashil',hex:0x36c77a,base:0x176e4a,start:13},
+ {name:'Ko‘k',hex:0x4a91ff,base:0x244d9b,start:26},
+ {name:'Sariq',hex:0xf4c542,base:0x9a741b,start:39}
+];
+const board=new THREE.Group();scene.add(board);
+const floor=new THREE.Mesh(new THREE.PlaneGeometry(200,200),mat(0x172432,.95));floor.rotation.x=-Math.PI/2;floor.position.y=-.48;floor.receiveShadow=true;scene.add(floor);
+const baseBoard=new THREE.Mesh(new THREE.BoxGeometry(11.5,.45,11.5),mat(0x293849,.45,.25));baseBoard.position.y=-.25;baseBoard.receiveShadow=true;baseBoard.castShadow=true;board.add(baseBoard);
+const tileMat=mat(0xd8d5c8,.82);
+const path=[];
+for(let i=0;i<13;i++) path.push([-6+i,0]);
+for(let i=1;i<=5;i++) path.push([6,i]);
+for(let i=1;i<=13;i++) path.push([6-i,6]);
+for(let i=1;i<=5;i++) path.push([-6,6-i]);
+for(let i=1;i<=13;i++) path.push([-6+i,-6]);
+for(let i=1;i<=5;i++) path.push([6,-6+i]);
+// Replace with a clean 52-cell square loop on a 15x15-style perimeter.
+path.length=0;
+const ring=[];
+for(let x=-6;x<=6;x++) ring.push([x,-6]);
+for(let z=-5;z<=6;z++) ring.push([6,z]);
+for(let x=5;x>=-6;x--) ring.push([x,6]);
+for(let z=5;z>=-5;z--) ring.push([-6,z]);
+for(let i=0;i<52;i++) path.push(ring[i]);
+const tileGeo=new THREE.BoxGeometry(.86,.16,.86);
+path.forEach((p,i)=>{const m=new THREE.Mesh(tileGeo,tileMat);m.position.set(p[0],.05,p[1]);m.receiveShadow=true;m.castShadow=true;board.add(m);
+ if(i%13===0){const glow=new THREE.Mesh(new THREE.BoxGeometry(.88,.18,.88),mat(colors[Math.floor(i/13)].hex,.35,.15));glow.position.set(p[0],.16,p[1]);board.add(glow);}
+});
+const homePositions=[[-4.3,-4.3],[4.3,-4.3],[4.3,4.3],[-4.3,4.3]];
+const homeMats=colors.map(c=>mat(c.hex,.5,.12));
+homePositions.forEach((p,i)=>{
+ const pad=new THREE.Mesh(new THREE.BoxGeometry(3.1,.25,3.1),mat(colors[i].base,.7));pad.position.set(p[0],-.02,p[1]);pad.castShadow=true;pad.receiveShadow=true;board.add(pad);
+ const inner=new THREE.Mesh(new THREE.BoxGeometry(2.5,.12,2.5),homeMats[i]);inner.position.set(p[0],.15,p[1]);board.add(inner);
+ for(let j=0;j<4;j++){const x=p[0]+(j%2? .65:-.65),z=p[1]+(j<2?-.65:.65);const ringm=new THREE.Mesh(new THREE.CylinderGeometry(.42,.42,.08,32),mat(0xf1e8d2));ringm.position.set(x,.28,z);board.add(ringm);}
+});
+const center=new THREE.Mesh(new THREE.CylinderGeometry(1.25,1.25,.25,6),mat(0x94733d,.4,.4));center.position.set(0,.15,0);board.add(center);
+const centerGem=new THREE.Mesh(new THREE.IcosahedronGeometry(.55,1),mat(0xffd36b,.25,.5));centerGem.position.set(0,.75,0);board.add(centerGem);
+
+function makeWarrior(colorIndex){
+ const g=new THREE.Group(); const c=colors[colorIndex];
+ const armor=mat(c.hex,.38,.48), dark=mat(0x202a35,.55,.35), gold=mat(0xd7ad55,.3,.7), skin=mat(0xc58e68,.75);
+ const body=new THREE.Mesh(new THREE.CylinderGeometry(.22,.3,.62,10),armor);body.position.y=.73;body.castShadow=true;g.add(body);
+ const head=new THREE.Mesh(new THREE.SphereGeometry(.22,16,12),skin);head.position.y=1.2;head.castShadow=true;g.add(head);
+ const helmet=new THREE.Mesh(new THREE.SphereGeometry(.245,16,10,0,Math.PI*2,0,Math.PI*.55),gold);helmet.position.y=1.27;helmet.castShadow=true;g.add(helmet);
+ const crest=new THREE.Mesh(new THREE.ConeGeometry(.12,.42,8),mat(0x8b2635));crest.position.set(0,1.57,0);g.add(crest);
+ for(const s of [-1,1]){const arm=new THREE.Mesh(new THREE.CylinderGeometry(.075,.09,.42,8),armor);arm.position.set(s*.29,.83,0);arm.rotation.z=s*.35;g.add(arm);
+ const leg=new THREE.Mesh(new THREE.CylinderGeometry(.09,.11,.35,8),dark);leg.position.set(s*.13,.27,0);g.add(leg);}
+ const shield=new THREE.Mesh(new THREE.CylinderGeometry(.27,.27,.08,8),gold);shield.rotation.x=Math.PI/2;shield.position.set(-.38,.8,.08);g.add(shield);
+ const spear=new THREE.Group();const shaft=new THREE.Mesh(new THREE.CylinderGeometry(.025,.035,1.15,8),mat(0x8c6840));shaft.rotation.z=-.22;shaft.position.y=.72;spear.add(shaft);
+ const tip=new THREE.Mesh(new THREE.ConeGeometry(.09,.28,6),gold);tip.position.set(.13,1.32,0);tip.rotation.z=-.22;spear.add(tip);
+ spear.position.set(.34,.05,.05);g.add(spear);g.userData.spear=spear;
+ const base=new THREE.Mesh(new THREE.CylinderGeometry(.34,.34,.12,24),dark);base.position.y=.06;g.add(base);
+ g.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;}});
+ g.userData.colorIndex=colorIndex;return g;
+}
+const warriors=colors.map((c,ci)=>Array.from({length:4},()=>{const w=makeWarrior(ci);board.add(w);return w;}));
+const state=colors.map(()=>Array.from({length:4},()=>({step:-1,done:false})));
+let current=0,rollValue=null,animating=false,selected=null;
+const diceEl=document.getElementById('dice'),turnEl=document.getElementById('turn'),statusEl=document.getElementById('status'),rollBtn=document.getElementById('roll'),scoreEl=document.getElementById('score');
+const v=(p)=>new THREE.Vector3(p[0],.22,p[1]);
+function homePos(ci,ti){const p=homePositions[ci];return [p[0]+(ti%2?.65:-.65),p[1]+(ti<2?-.65:.65)];}
+function globalIndex(ci,step){return (colors[ci].start+step)%52;}
+function positionWarriors(){
+ colors.forEach((c,ci)=>state[ci].forEach((s,ti)=>{
+  const w=warriors[ci][ti];
+  if(s.step<0){const p=homePos(ci,ti);w.position.set(p[0],.22,p[1]);}
+  else if(s.done){w.position.set(0,.22,0);}
+  else {const p=path[globalIndex(ci,s.step)];w.position.set(p[0],.22,p[1]);}
+ }));
+}
+positionWarriors();
+const raycaster=new THREE.Raycaster(),pointer=new THREE.Vector2();
+function showToast(t){const el=document.getElementById('toast');el.textContent=t;el.style.opacity=1;clearTimeout(showToast.t);showToast.t=setTimeout(()=>el.style.opacity=0,1700);}
+function updateUI(){turnEl.textContent='Navbat: '+colors[current].name;statusEl.textContent=rollValue?`Zar: ${rollValue}. Jangchini tanlang.`:'Zarni tashlang.';rollBtn.disabled=rollValue!==null||animating;scoreEl.innerHTML=colors.map((c,i)=>`<span class="pill"><i class="dot" style="background:#${c.hex.toString(16)}"></i>${c.name}: ${state[i].filter(s=>s.done).length}/4</span>`).join('');}
+rollBtn.addEventListener('click',()=>{
+ if(rollValue!==null||animating)return;
+ rollValue=1+Math.floor(Math.random()*6);diceEl.textContent=['⚀','⚁','⚂','⚃','⚄','⚅'][rollValue-1];
+ updateUI();showToast('Zar: '+rollValue);
+ const movable=state[current].some(s=>s.step<0?rollValue===6:!s.done&&s.step+rollValue<=56);
+ if(!movable){setTimeout(nextTurn,700);}
+});
+function nextTurn(){rollValue=null;current=(current+1)%4;updateUI();}
+function animateCapture(victim,done){
+ animating=true;const start=victim.position.clone();const spear=victim.userData.spear;const t0=performance.now();
+ function frame(now){const t=Math.min(1,(now-t0)/650);victim.position.y=.22+Math.sin(t*Math.PI)*.9;spear.rotation.z=Math.sin(t*Math.PI)*1.1;
+  if(t<1)requestAnimationFrame(frame);else{victim.position.copy(start);spear.rotation.z=0;done();}}
+ requestAnimationFrame(frame);
+}
+function burstAt(pos){
+ const group=new THREE.Group();scene.add(group);group.position.copy(pos);
+ const particles=[];const pm=mat(0xffc65c,.25,.25);
+ for(let i=0;i<24;i++){const m=new THREE.Mesh(new THREE.SphereGeometry(.07+Math.random()*.07,8,8),pm);m.position.set(0,0,0);group.add(m);particles.push({m,vel:new THREE.Vector3((Math.random()-.5)*.16,Math.random()*.18,(Math.random()-.5)*.16)});}
+ const t0=performance.now();function tick(now){const t=(now-t0)/550;particles.forEach(p=>{p.m.position.add(p.vel);p.m.scale.setScalar(Math.max(.01,1-t));});group.scale.setScalar(1+t*.5);if(t<1)requestAnimationFrame(tick);else scene.remove(group);}requestAnimationFrame(tick);
+}
+function moveWarrior(ci,ti){
+ if(animating||rollValue===null||ci!==current)return;
+ const s=state[ci][ti];if(s.done)return;
+ if(s.step<0&&rollValue!==6){showToast('Maydonga chiqish uchun 6 kerak');return;}
+ if(s.step>=0&&s.step+rollValue>56){showToast('Bu yurish mumkin emas');return;}
+ const amount=s.step<0?0:rollValue;const newStep=s.step<0?0:s.step+amount;
+ const old= s.step;s.step=newStep;
+ const endPos= s.step>=52? [0,.22,0] : path[globalIndex(ci,s.step)];
+ if(s.step>=56){s.done=true;}
+ const w=warriors[ci][ti],from=w.position.clone(),to=new THREE.Vector3(endPos[0],.22,endPos[1]);animating=true;
+ const t0=performance.now(),duration= Math.max(250,Math.abs(newStep-(old<0?0:old))*115);
+ function walk(now){const t=Math.min(1,(now-t0)/duration);w.position.lerpVectors(from,to,t);w.position.y=.22+Math.abs(Math.sin(t*Math.PI*8))*.09;
+  if(t<1)requestAnimationFrame(walk);else{w.position.copy(to);w.position.y=.22;
+   if(!s.done){const idx=globalIndex(ci,s.step);let victim=null;
+    for(let oi=0;oi<4;oi++)if(oi!==ci)for(let j=0;j<4;j++){const os=state[oi][j];if(os.step>=0&&!os.done&&globalIndex(oi,os.step)===idx){victim={ci:oi,ti:j};break;}}
+    if(victim){const vw=warriors[victim.ci][victim.ti];showToast('Jang! Raqib uyiga qaytdi');animateCapture(vw,()=>{burstAt(vw.position.clone());state[victim.ci][victim.ti].step=-1;positionWarriors();finishMove();});return;}
+   }
+   finishMove();
+  }}
+ requestAnimationFrame(walk);
+ function finishMove(){animating=false;const won=state[current].every(x=>x.done);if(won){showToast(colors[current].name+' jamoasi g‘alaba qozondi!');rollValue=null;updateUI();return;}
+  const six=rollValue===6;rollValue=null;if(!six)current=(current+1)%4;updateUI();}
+}
+renderer.domElement.addEventListener('pointerdown',e=>{
+ const r=renderer.domElement.getBoundingClientRect();pointer.x=(e.clientX-r.left)/r.width*2-1;pointer.y=-(e.clientY-r.top)/r.height*2+1;
+ raycaster.setFromCamera(pointer,camera);
+ const all=warriors.flat();
+ const hits=raycaster.intersectObjects(all,true);
+ if(!hits.length)return;
+ let node=hits[0].object;
+ while(node && !all.includes(node)) node=node.parent;
+ if(node){const n=all.indexOf(node);moveWarrior(Math.floor(n/4),n%4);}
+});
+function resize(){camera.aspect=innerWidth/innerHeight;camera.position.z=innerWidth<600?21:18;camera.position.y=innerWidth<600?18:15;camera.lookAt(0,0,0);camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);}
+addEventListener('resize',resize);
+const clock=new THREE.Clock();
+function render(){requestAnimationFrame(render);const t=clock.getElapsedTime();centerGem.rotation.y=t*.5;centerGem.position.y=.75+Math.sin(t*1.5)*.08;warriors.flat().forEach((w,i)=>{if(!animating)w.rotation.y=Math.sin(t*1.1+i)*.05;});renderer.render(scene,camera);}
+updateUI();render();
+</script>
+</body></html>
